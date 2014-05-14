@@ -69,6 +69,28 @@ class Event:
         self.sqrt_s_hut = np.sqrt(self.tau) * sqrtS
 
         # TODO: Berechnung von pe und pn!
+        # Aus y = 1/2 log(1 + beta / 1 - beta)
+        beta = (np.exp(2 * self.y) - 1)/(np.exp(2 * self.y) + 1)
+        gamma = 1/np.sqrt(1 - beta**2)
+        sin_theta = np.sqrt(1 - self.cos_theta**2)
+        # _star bezeichnet die Größen im Schwerpunktsystem
+        p1e_star = self.sqrt_s_hut/2 * sin_theta * np.cos(self.phi)
+        p1n_star = -p1e_star
+        p2e_star = self.sqrt_s_hut/2 * sin_theta * np.sin(self.phi)
+        p2n_star = -p2e_star
+        p3e_star = self.sqrt_s_hut/2 * self.cos_theta
+        p3n_star = -p3e_star
+        p0n_star = p0e_star = np.sqrt(p1e_star**2 + p2e_star**2 + p3e_star**2)
+
+        # Boost ins Laborsystem
+        self.p0e = gamma * (p0e_star - beta * p3e_star)
+        self.p0n = gamma * (p0n_star - beta * p3n_star)
+        self.p1e = p1e_star
+        self.p1n = p1n_star
+        self.p2e = p2e_star
+        self.p2n = p2n_star
+        self.p3e = gamma*(p3e_star - beta * p0e_star)
+        self.p3n = gamma*(p3n_star - beta * p0n_star)
 
     def get_sum_m(self):
         return 2*GF**2*MassW**8*(1+self.cos_theta)**2 / ((self.sqrt_s_hut**2-MassW**2)**2 + MassW**2*GammaW**2)
@@ -101,7 +123,7 @@ if __name__ == '__main__':
     events = list()
     for i in range(10000):
         x = Event()
-        # dSigma = x.get_dsigma()
+        #dSigma = x.get_dsigma()
         #if Event.random() < dSigma/maxDSigma:
         #    sigma += dSigma
         #    counter += 1.0
