@@ -5,6 +5,9 @@ Created on Fri May 09 10:07:35 2014
 @author: s0cke, nilpferd1991
 """
 
+# TODO: Es existiert eine gewisse Asymmetrie! Betrachte zum Beispiel cos Theta! Ist die gewollt?
+# TODO: Die Integration muss unbedingt verbessert werden! Importance sampling usw.
+
 import numpy as np
 import matplotlib.pyplot as plt
 import os.path
@@ -132,7 +135,7 @@ def plot(plot_events):
 
 if __name__ == '__main__':
 
-    debug = 0
+    debug = 1
 
     events = list()
     goodEvents = list()
