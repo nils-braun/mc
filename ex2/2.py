@@ -19,7 +19,7 @@ GF = 10**(-5)
 class Event:
     """ Klasse zur Speicherung und Erzeugung eines Events """
 
-    outputFile = "eventsData.npy"
+    outputFile = "eventsData_" + str(sqrtS/1000) + "TeV.npy"
 
     def __init__(self):
         self.p0e, self.p1e, self.p2e, self.p3e = 0, 0, 0, 0
@@ -97,10 +97,12 @@ class Event:
         self.p3n = gamma*(p3n_star - beta * p0n_star)
 
     def get_sum_m(self):
+        """ Gibt die Summe über M wie auf dem Blatt angeben zurück
+        """
         return 2*GF**2*MassW**8*(1+self.cos_theta)**2 / ((self.sqrt_s_hut**2-MassW**2)**2 + MassW**2*GammaW**2)
 
     def get_dsigma(self):
-        """ Berechnet dSigma für das gegebene Event
+        """ Berechnet dSigma für das gegebene Event, falls dies nocht schon vorher geschiehen ist und abgespeichert wurde
         """
         if self.dsigma is np.nan:
             self.dsigma = self._f(self.x1) * self._f(self.x2) * 1/(32*np.pi**2) * self.get_sum_m() * 1/(2*self.sqrt_s_hut**2) * 1/(2*np.pi)**2 * 1/(4*self.p0e*self.p0n)
@@ -109,6 +111,8 @@ class Event:
             return self.dsigma
 
     def __getitem__(self, item):
+        """ Eine Hilfsfunktion zur Ausgabe der einzelnen Variablen als Liste
+        """
         return (self.p0e, self.p1e, self.p2e, self.p3e,  # 0, 1, 2, 3
                 self.p0n, self.p1n, self.p2n, self.p3n,  # 4, 5, 6, 7
                 self.x1, self.x2,                        # 8, 9
@@ -128,7 +132,7 @@ def plot(plot_events):
 
 if __name__ == '__main__':
 
-    debug = 1
+    debug = 0
 
     events = list()
     goodEvents = list()
