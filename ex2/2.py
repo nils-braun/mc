@@ -49,27 +49,27 @@ class Event:
 
     def get_event(self):
         """ Gibt ein zufällig gewürfeltes Event zurück
-        Ändert:
-        p0e, p1e, p2e, p3e, p0n, p1n, p2n, p3n, x1, x2, Tau, y, sqrtSHut
-
-        TODO: Andere Variablen verwenden!
         :rtype : none
         """
 
         # Berechnen der gleichverteilten Zufallsvariablen
         random = self.random(4)
         # tau zwischen 50/SqrtS und 100/SqrtS
-        self.tau = 50/sqrtS * random[0] + 50/sqrtS
-        # y zwischen -5 und 5
-        self.y = 10*random[1] - 5
+        self.tau = 50**2/sqrtS**2 * random[0] + 50**2/sqrtS**2
+        # abs(y) kleiner log(tau)/2
+        self.y = np.log(self.tau)*random[1] - np.log(self.tau)/2.0
         # cos Theta zwischen -1 und 1
         self.cos_theta = 2*random[2] - 1
         # phi zwischen 0 und 2 pi
         self.phi = 2 * np.pi * random[3]
 
         # Berechnen der restlichen Parameter
+        self.x2 = np.sqrt(self.tau/np.exp(2*self.y))
+        self.x1 = self.tau / self.x2
+        self.sqrt_s_hut = np.sqrt(self.tau) * sqrtS
 
-        
+        # TODO: Berechnung von pe und pn!
+
 
     def get_sum_m(self):
         return 2*GF**2*MassW**8*(1+self.cos_theta)**2 / ((self.sqrt_s_hut**2-MassW**2)**2 + MassW**2*GammaW**2)
@@ -111,12 +111,12 @@ if __name__ == '__main__':
     events = list()
     for i in range(10000):
         x = Event()
-        dSigma = x.get_dsigma()
-        if Event.random() < dSigma/maxDSigma:
-            sigma += dSigma
-            counter += 1.0
-            events.append(x)
-    print(sigma/counter, sigma/counter*0.3894/1000.0, counter)
+        # dSigma = x.get_dsigma()
+        #if Event.random() < dSigma/maxDSigma:
+        #    sigma += dSigma
+        #    counter += 1.0
+        #    events.append(x)
+    #print(sigma/counter, sigma/counter*0.3894/1000.0, counter)
     
     #events = np.load('eventsData.npy')
     #plot(events)
