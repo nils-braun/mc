@@ -70,24 +70,14 @@ class Event:
 
         # TODO: Berechnung von pe und pn!
 
-
     def get_sum_m(self):
         return 2*GF**2*MassW**8*(1+self.cos_theta)**2 / ((self.sqrt_s_hut**2-MassW**2)**2 + MassW**2*GammaW**2)
 
     def get_dsigma(self):
         """ Berechnet dSigma für das gegebene Event
-        TODO: Jakobideterminante implementieren!
         """
-        return self._f(self.x1) * self._f(self.x2) * \
+        return self._f(self.x1) * self._f(self.x2) * 1/(32*np.pi**2) * \
                self.get_sum_m() * 1/(2*self.sqrt_s_hut**2) * 1/(2*np.pi)**2 * 1/(4*self.p0e*self.p0n)
-        
-    # TODO: Sollte in get_event implementiert werdn!
-    #def cuts(p0e, p1e, p2e, p3e, p0n, p1n, p2n, p3n, x1, x2, Tau, y, sqrtSHut):
-    #    if ((sqrtSHut < 50) or (sqrtSHut > 100)):
-    #        return False
-    #    if np.abs(y) >= 5:
-    #        return False
-    #    return True
 
 
 def get_max_dsigma():
