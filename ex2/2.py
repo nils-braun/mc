@@ -10,6 +10,7 @@ Created on Fri May 09 10:07:35 2014
 import numpy as np
 import matplotlib.pyplot as plt
 import os.path
+import sys
 from matplotlib.backends.backend_pdf import PdfPages
 
 # Globale Variablendefintionen
@@ -18,14 +19,9 @@ MassW = 80
 GammaW = 2
 GF = 10**(-5)
 
-# primitive Integration?
-crude_mc = 0
-
 
 class Event:
     """ Klasse zur Speicherung und Erzeugung eines Events """
-
-    outputFile = "eventsData_" + str(sqrtS/1000) + "TeV_crude" + str(crude_mc) + ".npy"
 
     def __init__(self):
         self.p0e, self.p1e, self.p2e, self.p3e = 0, 0, 0, 0
@@ -114,7 +110,8 @@ class Event:
     def get_sum_m(self):
         """ Gibt die Summe über M wie auf dem Blatt angeben zurück
         """
-        return 2*GF**2*MassW**8*(1+ np.random.choice([1,-1])* self.cos_theta)**2 / ((self.sqrt_s_hut**2-MassW**2)**2 + MassW**2*GammaW**2)
+        return 2*GF**2*MassW**8*(1 + np.random.choice([1, -1])*self.cos_theta)**2 / \
+            ((self.sqrt_s_hut**2-MassW**2)**2 + MassW**2*GammaW**2)
 
     def get_dsigma(self):
         """ Berechnet dSigma für das gegebene Event, falls dies nocht schon vorher geschiehen ist und abgespeichert wurde
@@ -122,9 +119,11 @@ class Event:
         if self.dsigma is np.nan:
             if crude_mc == 0:
                 # Jakobideterminante für importance sampling berücksichtigen
-                self.dsigma = self._f(self.x1) * self._f(self.x2) * 1/(32*np.pi**2) * self.get_sum_m() * 1/(2*self.sqrt_s_hut**2) * 1/(2*np.pi)**2 * 1/(4*self.p0e*self.p0n) / (sqrtS**2 * MassW * GammaW) * ((self.sqrt_s_hut**2 - MassW**2)**2+MassW**2*GammaW**2)
+                self.dsigma = self._f(self.x1) * self._f(self.x2) * 1/(32*np.pi**2) * self.get_sum_m() *\
+                    1/(2*self.sqrt_s_hut**2) * 1/(2*np.pi)**2 * 1/(4*self.p0e*self.p0n) / (sqrtS**2 * MassW * GammaW) * ((self.sqrt_s_hut**2 - MassW**2)**2+MassW**2*GammaW**2)
             else:
-                self.dsigma = self._f(self.x1) * self._f(self.x2) * 1/(32*np.pi**2) * self.get_sum_m() * 1/(2*self.sqrt_s_hut**2) * 1/(2*np.pi)**2 * 1/(4*self.p0e*self.p0n)
+                self.dsigma = self._f(self.x1) * self._f(self.x2) * 1/(32*np.pi**2) * self.get_sum_m() *\
+                    1/(2*self.sqrt_s_hut**2) * 1/(2*np.pi)**2 * 1/(4*self.p0e*self.p0n)
             return self.dsigma
         else:
             return self.dsigma
@@ -187,30 +186,56 @@ def plot(plot_events):
 
 if __name__ == '__main__':
 
+    # Neue Daten produzieren
     debug = 0
+
+    # primitive Integration?
+    crude_mc = 0
+
+    # Setze die Variablen und die Dateinamen korrekt
+    if len(sys.argv) >= 2:
+        crude_mc = int(sys.argv[1])
+
+    if crude_mc == 0:
+        print("using importance sampling mc-integration")
+    else:
+        print("using crude mc-integration")
+
+    outputFile = "eventsData_" + str(sqrtS/1000) + "TeV_crude" + str(crude_mc) + ".npy"
+
+    print("datafile:", outputFile)
 
     events = list()
     goodEvents = list()
 
     if debug == 0:
-        print("calculating new points...")
         maxDSigma = 0
-        for i in range(100000):
-            x = Event()
-            dSigma = x.get_dsigma()
-            events.append(x)
-            maxDSigma = np.maximum(maxDSigma, dSigma)
+        counter = 0
 
-        for x in events:
-            if Event.random() <= x.get_dsigma()/maxDSigma:
-                goodEvents.append(x)
+        while len(goodEvents) < 1000:
+            print("calculating new points...")
 
-    if os.path.isfile(Event.outputFile):
+            events = list()
+
+            for i in range(10000):
+                x = Event()
+                dSigma = x.get_dsigma()
+                events.append(x)
+                maxDSigma = np.maximum(maxDSigma, dSigma)
+                counter += 1
+
+            for x in events:
+                if Event.random() <= x.get_dsigma()/maxDSigma:
+                    goodEvents.append(x)
+
+        print("Using only", len(goodEvents), "of", counter, "events")
+
+    if os.path.isfile(outputFile):
         print("reading old points...")
-        loadedEvents = np.load(Event.outputFile)
+        loadedEvents = np.load(outputFile)
         goodEvents.extend(loadedEvents)
 
-    np.save(Event.outputFile, goodEvents)
+    np.save(outputFile, goodEvents)
 
     sigma = sum([x.get_dsigma()/len(goodEvents) for x in goodEvents])
     print("sigma =", sigma*0.3894/1000.0, ", count =", len(goodEvents))
