@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import os.path
 import sys
 from matplotlib.backends.backend_pdf import PdfPages
+import multiprocessing as mp
 
 # Globale Variablendefintionen
 sqrtS = 2000
@@ -182,15 +183,33 @@ def plot(plot_events):
     pp.savefig()
     plt.close()
     pp.close()
-        
+
+
+def calc_new_events(size):
+    _events = list()
+    _maxDSigma = -1
+
+    for i in range(size):
+        x = Event()
+        _dSigma = x.get_dsigma()
+        _events.append(x)
+        _maxDSigma = np.maximum(_maxDSigma, _dSigma)
+
+    return _events, _maxDSigma
+
+
+def calc_new_events_multicore(q, size):
+    q.put(calc_new_events(size))
 
 if __name__ == '__main__':
 
     # Neue Daten produzieren
-    debug = 0
+    debug = 1
 
     # primitive Integration?
     crude_mc = 0
+
+    # Wie viele Prozessoren hat das System?
 
     # Setze die Variablen und die Dateinamen korrekt
     if len(sys.argv) >= 2:
@@ -209,20 +228,26 @@ if __name__ == '__main__':
     goodEvents = list()
 
     if debug == 0:
-        maxDSigma = 0
+        maxDSigma = -1
         counter = 0
 
-        while len(goodEvents) < 1000:
+        while len(goodEvents) < 10000:
             print("calculating new points...")
 
+            queue = mp.Queue()
             events = list()
+            processes = list()
 
-            for i in range(10000):
-                x = Event()
-                dSigma = x.get_dsigma()
-                events.append(x)
-                maxDSigma = np.maximum(maxDSigma, dSigma)
-                counter += 1
+            for i in range(mp.cpu_count()):
+                p = mp.Process(target=calc_new_events_multicore, args=(queue, 10000))
+                p.start()
+                processes.append(p)
+
+            for i in range(mp.cpu_count()):
+                temp_events, temp_maxDSigma = queue.get()
+                counter += len(events)
+                events.extend(temp_events)
+                maxDSigma = np.maximum(maxDSigma, temp_maxDSigma)
 
             for x in events:
                 if Event.random() <= x.get_dsigma()/maxDSigma:
