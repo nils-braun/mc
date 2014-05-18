@@ -14,6 +14,9 @@ import sys
 from matplotlib.backends.backend_pdf import PdfPages
 import multiprocessing as mp
 
+# primitive Integration?
+crude_mc = 0
+
 # Globale Variablendefintionen
 sqrtS = 2000
 MassW = 80
@@ -205,9 +208,6 @@ if __name__ == '__main__':
 
     # Neue Daten produzieren
     debug = 1
-
-    # primitive Integration?
-    crude_mc = 0
 
     # Wie viele Prozessoren hat das System?
 
