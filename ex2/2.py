@@ -6,6 +6,8 @@ Created on Fri May 09 10:07:35 2014
 """
 
 # TODO: Unterschied von sigma bei crude/importance sampling
+# TODO: Cut auf y
+# TODO: Asymmetrie nicht durch Würfeln beseitigen, beide Fälle addieren
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -124,7 +126,7 @@ class Event:
             if crude_mc == 0:
                 # Jakobideterminante für importance sampling berücksichtigen
                 self.dsigma = self._f(self.x1) * self._f(self.x2) * 1/(32*np.pi**2) * self.get_sum_m() *\
-                    1/(2*self.sqrt_s_hut**2) * 1/(2*np.pi)**2 * 1/(4*self.p0e*self.p0n) / (sqrtS**2 * MassW * GammaW) * ((self.sqrt_s_hut**2 - MassW**2)**2+MassW**2*GammaW**2)
+                    1/(2*self.sqrt_s_hut**2) * 1/(2*np.pi)**2 * 1/(4*self.p0e*self.p0n) / (MassW * GammaW) * ((self.sqrt_s_hut**2 - MassW**2)**2+MassW**2*GammaW**2)
             else:
                 self.dsigma = self._f(self.x1) * self._f(self.x2) * 1/(32*np.pi**2) * self.get_sum_m() *\
                     1/(2*self.sqrt_s_hut**2) * 1/(2*np.pi)**2 * 1/(4*self.p0e*self.p0n)
@@ -227,7 +229,7 @@ if __name__ == '__main__':
     events = list()
     goodEvents = list()
 
-    if debug == 0:
+    if debug == 1:
         maxDSigma = -1
         counter = 0
 
