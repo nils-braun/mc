@@ -6,8 +6,6 @@ Created on Fri May 09 10:07:35 2014
 """
 
 # TODO: Unterschied von sigma bei crude/importance sampling
-# TODO: Cut auf y
-# TODO: Asymmetrie nicht durch Würfeln beseitigen, beide Fälle addieren
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -116,7 +114,7 @@ class Event:
     def get_sum_m(self):
         """ Gibt die Summe über M wie auf dem Blatt angeben zurück
         """
-        return 2*GF**2*MassW**8*(1 + np.random.choice([1, -1])*self.cos_theta)**2 / \
+        return 2*GF**2*MassW**8*(1 + self.cos_theta**2) / \
             ((self.sqrt_s_hut**2-MassW**2)**2 + MassW**2*GammaW**2)
 
     def get_dsigma(self):
@@ -125,11 +123,15 @@ class Event:
         if self.dsigma is np.nan:
             if crude_mc == 0:
                 # Jakobideterminante für importance sampling berücksichtigen
-                self.dsigma = self._f(self.x1) * self._f(self.x2) * 1/(32*np.pi**2) * self.get_sum_m() *\
-                    1/(2*self.sqrt_s_hut**2) * 1/(2*np.pi)**2 * 1/(4*self.p0e*self.p0n) / (MassW * GammaW) * ((self.sqrt_s_hut**2 - MassW**2)**2+MassW**2*GammaW**2)
+                breit_wigner = (MassW * GammaW) / ((self.sqrt_s_hut**2 - MassW**2)**2+MassW**2*GammaW**2)
+                self.dsigma = self._f(self.x1) * self._f(self.x2) * 1/(32*np.pi**2) * self.get_sum_m() * 0.3894e-3 / \
+                    (2*self.sqrt_s_hut**2) / breit_wigner
             else:
-                self.dsigma = self._f(self.x1) * self._f(self.x2) * 1/(32*np.pi**2) * self.get_sum_m() *\
-                    1/(2*self.sqrt_s_hut**2) * 1/(2*np.pi)**2 * 1/(4*self.p0e*self.p0n)
+                self.dsigma = self._f(self.x1) * self._f(self.x2) * 1/(32*np.pi**2) * self.get_sum_m() * 0.3894e-3 / \
+                    (2*self.sqrt_s_hut**2)
+
+            if abs(self.y) > 5:
+                self.dsigma = 0;
             return self.dsigma
         else:
             return self.dsigma
@@ -265,6 +267,6 @@ if __name__ == '__main__':
     np.save(outputFile, goodEvents)
 
     sigma = sum([x.get_dsigma()/len(goodEvents) for x in goodEvents])
-    print("sigma =", sigma*0.3894/1000.0, ", count =", len(goodEvents))
+    print("sigma =", sigma, ", count =", len(goodEvents))
 
     plot(goodEvents)
