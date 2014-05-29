@@ -35,6 +35,8 @@ class Event:
 
         self.dsigma = np.nan
 
+        self.factor = 1
+
         self.get_event()
 
     @staticmethod
@@ -67,8 +69,10 @@ class Event:
         random = self.random(4)
         # cos Theta zwischen -1 und 1
         self.cos_theta = 2*random[2] - 1
+        self.factor *= 2
         # phi zwischen 0 und 2 pi
         self.phi = 2 * np.pi * random[3]
+        self.factor *= 2 * np.pi
 
         if crude_mc == 0:
             # importance sampling mit Breit Wigner
@@ -81,10 +85,12 @@ class Event:
             # primitive Integration (crude mc)
             # tau zwischen 50/SqrtS und 100/SqrtS
             self.tau = (100**2 - 50**2)/sqrtS**2 * random[0] + 50**2/sqrtS**2
+            self.factor *= (100**2 - 50**2)/sqrtS**2
             self.sqrt_s_hut = np.sqrt(self.tau) * sqrtS
             
         # abs(y) kleiner log(tau)/2
         self.y = np.log(self.tau)*random[1] - np.log(self.tau)/2.0
+        self.factor *= np.log(self.tau)
         self.x2 = np.sqrt(self.tau/np.exp(2*self.y))
         self.x1 = self.tau / self.x2
 
@@ -124,10 +130,10 @@ class Event:
             if crude_mc == 0:
                 # Jakobideterminante für importance sampling berücksichtigen
                 breit_wigner = (MassW * GammaW) / ((self.sqrt_s_hut**2 - MassW**2)**2+MassW**2*GammaW**2)
-                self.dsigma = self._f(self.x1) * self._f(self.x2) * 1/(32*np.pi**2) * self.get_sum_m() * 0.3894e-3 / \
+                self.dsigma = self.factor * self._f(self.x1) * self._f(self.x2) * 1/(32*np.pi**2) * self.get_sum_m() * 0.3894e-3 / \
                     (2*self.sqrt_s_hut**2) / breit_wigner
             else:
-                self.dsigma = self._f(self.x1) * self._f(self.x2) * 1/(32*np.pi**2) * self.get_sum_m() * 0.3894e-3 / \
+                self.dsigma = self.factor * self._f(self.x1) * self._f(self.x2) * 1/(32*np.pi**2) * self.get_sum_m() * 0.3894e-3 / \
                     (2*self.sqrt_s_hut**2)
 
             if abs(self.y) > 5:
