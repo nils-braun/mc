@@ -13,6 +13,12 @@ def kaellem(a, b, c):
 def generator(n, s):
     m1squared = np.random.random() * s
     m2squared = np.random.random() * (s + m1squared - np.sqrt(4 * s * m1squared))
+
+    if np.random.random() < 0.5:
+        temp = m1squared
+        m1squared = m2squared
+        m2squared = temp
+
     cosTheta = np.random.random() * 2 - 1
     phi = np.random.random() * 2 * np.pi
 
@@ -48,30 +54,23 @@ def generator(n, s):
 
 def main():
     s = 90**2  # GeV**2
-    factor, momenta = generator(2, s)
-
-    energyConservation = 0
-    momentumConservation = [0, 0, 0]
-    finalStateMass = []
-    for lorentzvector in momenta:
-        energyConservation += lorentzvector.t
-        momentumConservation[0] += lorentzvector.x
-        momentumConservation[1] += lorentzvector.y
-        momentumConservation[2] += lorentzvector.z
-        finalStateMass.append(lorentzvector.M2())
-
-    return momenta[0].M2(), momenta[1].M2()
+    factor, momenta = generator(3, s)
+    return momenta[0].M2(), momenta[1].M2(), momenta[2].M2()
 
 
 if __name__ == '__main__':
     m1List = list()
     m2List = list()
+    m3List = list()
     for i in xrange(0, int(10e3)):
-        m1, m2 = main()
+        m1, m2, m3 = main()
         m1List.append(m1)
         m2List.append(m2)
+        m3List.append(m3)
 
-    plt.hist(m1List)
+    plt.hist(np.sqrt(m1List), bins=50)
     plt.show()
-    plt.hist(m2List)
+    plt.hist(np.sqrt(m2List), bins=50)
+    plt.show()
+    plt.hist(np.sqrt(m3List), bins=50)
     plt.show()
